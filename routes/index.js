@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const data = require('../public/data.json');
-
+const clusterMaker = require('clusters');
 /* GET home page. */
 
 
@@ -63,14 +63,24 @@ function average(data) {
 router.get('/', function (req, res, next) {
     let rows = data.rows;
     let arrData = rows.map((row) => {
+        let timestamp = row.doc.timestamp;
+        let options = timestamp.split('_');
+        let date = new Date(options[2], options[1], options[0], options[3], options[4], options[5], 0);
+        return [date.getTime(), row.doc.go_memstats_gc_sys_bytes];
+    });
+    let stdData = rows.map((row) => {
         return row.doc.go_memstats_gc_sys_bytes;
     });
-    let stdev = standardDeviation(arrData);
+    let stdev = standardDeviation(stdData);
     let min = getMin(rows);
     let max = getMax(rows);
 
-
-    res.render('index', {title: 'go_memstats_gc_sys_bytes', min, max, stdev});
+    clusterMaker.k(3);
+    clusterMaker.iterations(1000);
+    clusterMaker.data(arrData);
+    let clusters = clusterMaker.clusters();
+    console.log(clusters);
+    res.render('index', {title: 'go_memstats_gc_sys_bytes', min, max, stdev, clusters, clustersString: JSON.stringify(clusters), allData: JSON.stringify(arrData)});
 });
 
 module.exports = router;
