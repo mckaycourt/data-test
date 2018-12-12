@@ -1,4 +1,70 @@
 extends layout
 
 block content
-    h2= output
+    #outputs(style='display:none;')= outputs
+    div(id="container" style="min-width: 310px; height: 400px; max-width: 800px; margin: 0 auto")
+    script.
+        let outputs = JSON.parse(document.querySelector('#outputs').innerHTML);
+        Highcharts.chart('container', {
+            chart: {
+                type: 'scatter',
+                zoomType: 'xy'
+            },
+            title: {
+                text: 'Prediction of go_memstats_gc_sys_bytes'
+            },
+            xAxis: {
+                title: {
+                    enabled: true,
+                    text: 'Time in Milliseconds'
+                },
+                startOnTick: true,
+                endOnTick: true,
+                showLastLabel: true
+            },
+            yAxis: {
+                title: {
+                    text: 'go_memstats_gc_sys_bytes'
+                }
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',
+                verticalAlign: 'top',
+                x: 100,
+                y: 70,
+                floating: true,
+                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                borderWidth: 1
+            },
+            plotOptions: {
+                scatter: {
+                    marker: {
+                        radius: 5,
+                        states: {
+                            hover: {
+                                enabled: true,
+                                lineColor: 'rgb(100,100,100)'
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            marker: {
+                                enabled: false
+                            }
+                        }
+                    },
+                    tooltip: {
+                        headerFormat: '<b>{series.name}</b><br>',
+                        pointFormat: '{point.x} seconds, {point.y}'
+                    }
+                }
+            },
+            series: [{
+                name: 'Predictions',
+                color: 'rgba(223, 83, 83, .5)',
+                data: outputs
+
+            }]
+        });

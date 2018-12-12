@@ -8,6 +8,7 @@ block content
   p Clusters Centroids:
   each cluster in clusters
     p= cluster.centroid
+  p When Memory Hits 0 bytes available: #{zeroDate}
   #data(style='display: none;')= clustersString
   #allData(style='display: none;')= allData
   div(id="container" style="min-width: 310px; height: 400px; max-width: 800px; margin: 0 auto")
