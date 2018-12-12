@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const data = require('../public/data.json');
 const clusterMaker = require('clusters');
+const brain = require('brain.js');
 //https://github.com/NathanEpstein/clusters
 /* GET home page. */
 
@@ -81,7 +82,39 @@ router.get('/', function (req, res, next) {
     clusterMaker.data(arrData);
     let clusters = clusterMaker.clusters();
     console.log(clusters);
-    res.render('index', {title: 'go_memstats_gc_sys_bytes', min, max, stdev, clusters, clustersString: JSON.stringify(clusters), allData: JSON.stringify(arrData)});
+    res.render('index', {
+        title: 'go_memstats_gc_sys_bytes',
+        min,
+        max,
+        stdev,
+        clusters,
+        clustersString: JSON.stringify(clusters),
+        allData: JSON.stringify(arrData)
+    });
+});
+
+router.get('/brain', function (req, res, next){
+    let inquery = req.query.find;
+    let rows = data.rows;
+    let brainData = [];
+    let arrData = rows.map((row) => {
+        let timestamp = row.doc.timestamp;
+        let options = timestamp.split('_');
+        let date = new Date(options[2], options[1], options[0], options[3], options[4], options[5], 0);
+        let brainObj = {input: [date.getTime()/100000000000000], output: [row.doc.go_memstats_gc_sys_bytes/10000000]};
+        brainData.push(brainObj);
+        return [date.getTime(), row.doc.go_memstats_gc_sys_bytes];
+    });
+
+    const net = new brain.NeuralNetwork();
+
+    net.train(brainData, {log: true});
+
+    let output = net.run([inquery/100000000000000]);
+    output = output * 10000000;
+    res.render('brain', {
+        output
+    })
 });
 
 module.exports = router;
